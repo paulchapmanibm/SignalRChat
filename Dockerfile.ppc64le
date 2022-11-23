@@ -1,4 +1,5 @@
-FROM dotnet-70 AS build-env
+FROM registry.redhat.io/ubi8/dotnet-70  
+#FROM dotnet-70 AS build-env
 #FROM mcr.microsoft.com/dotnet/aspnet:6.0 AS base
 #USER root
 #RUN mkdir /app
