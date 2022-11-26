@@ -1,44 +1,22 @@
-FROM registry.redhat.io/ubi8/dotnet-70  
-#FROM dotnet-70 AS build-env
-#FROM mcr.microsoft.com/dotnet/aspnet:6.0 AS base
-#USER root
-#RUN mkdir /app
-#USER root
+#See https://aka.ms/containerfastmode to understand how Visual Studio uses this Dockerfile to build your images for faster debugging.
+
+FROM mcr.microsoft.com/dotnet/aspnet:6.0 AS base
 WORKDIR /app
-#COPY --chown=1001 /app /app
-EXPOSE 8080
+EXPOSE 80
 EXPOSE 443
 
-FROM dotnet-70 AS build
-#FROM mcr.microsoft.com/dotnet/sdk:6.0 AS build
+FROM mcr.microsoft.com/dotnet/sdk:6.0 AS build
 WORKDIR /src
-COPY --chown=1001 ["SignalRChat/SignalRChat.csproj", "SignalRChat/"]
+COPY ["SignalRChat/SignalRChat.csproj", "SignalRChat/"]
 RUN dotnet restore "SignalRChat/SignalRChat.csproj"
-COPY --chown=1001 . ./
+COPY . .
 WORKDIR "/src/SignalRChat"
-USER root
 RUN dotnet build "SignalRChat.csproj" -c Release -o /app/build
 
 FROM build AS publish
 RUN dotnet publish "SignalRChat.csproj" -c Release -o /app/publish /p:UseAppHost=false
 
-#USER root
-FROM dotnet-70 AS final
+FROM base AS final
 WORKDIR /app
-COPY --chown=1001 --from=publish /app/publish .
+COPY --from=publish /app/publish .
 ENTRYPOINT ["dotnet", "SignalRChat.dll"]
-
-#WORKDIR /App
-#EXPOSE 8080
-# Copy everything
-#COPY --chown=1001 . ./
-# Restore as distinct layers
-#RUN dotnet restore
-# Build and publish a release
-#RUN dotnet publish -c Release -o out
-
-# Build runtime image
-#FROM dotnet-70                          
-#WORKDIR /App
-#COPY --chown=1001 --from=build-env /App/out .
-#ENTRYPOINT ["dotnet", "SignalRChat.dll","--server.urls", "http://0.0.0.0:8080"] 
